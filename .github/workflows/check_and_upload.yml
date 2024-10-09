@@ -13,7 +13,7 @@ jobs:
     steps:
     # 检出代码
     - name: 检出代码
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # 设置环境变量
     - name: 设置环境变量
@@ -44,7 +44,7 @@ jobs:
     # 上传文件
     - name: 上传文件
       if: steps.check_file.outputs.file_exists == 'false'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: $FILE_NAME
         path: $DOWNLOAD_DIR/$FILE_NAME
