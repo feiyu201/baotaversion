@@ -1,0 +1,50 @@
+name: 检查并上传
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  check_and_upload:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 检出代码
+    - name: 检出代码
+      uses: actions/checkout@v2
+
+    # 设置环境变量
+    - name: 设置环境变量
+      run: |
+        DOWNLOAD_DIR="${GITHUB_WORKSPACE}/baota"  # 下载目录为库中的baota文件夹
+        VERSION=$(curl -s https://www.bt.cn/api/panel/get_version?is_version=1)
+        FILE_NAME="LinuxPanel-${VERSION}.zip"
+
+    # 检查文件是否存在
+    - name: 检查文件是否存在
+      id: check_file
+      run: |
+        mkdir -p "$DOWNLOAD_DIR"  # 如果baota文件夹不存在则创建
+        if [ -f "$DOWNLOAD_DIR/$FILE_NAME" ]; then
+          echo "文件 $FILE_NAME 已经存在。"
+          echo "::set-output name=file_exists::true"
+        else
+          echo "文件 $FILE_NAME 不存在。"
+          echo "::set-output name=file_exists::false"
+        fi
+
+    # 如果文件不存在则下载
+    - name: 下载文件
+      if: steps.check_file.outputs.file_exists == 'false'
+      run: |
+        wget -P $DOWNLOAD_DIR http://download.bt.cn/install/update/$FILE_NAME
+
+    # 上传文件
+    - name: 上传文件
+      if: steps.check_file.outputs.file_exists == 'false'
+      uses: actions/upload-artifact@v2
+      with:
+        name: $FILE_NAME
+        path: $DOWNLOAD_DIR/$FILE_NAME
